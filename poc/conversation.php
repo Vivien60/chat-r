@@ -26,7 +26,7 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
         <form name="sendMessage" id="sendMessage" method="post">
             <label for="message">
                 Type your message
-                <input type="text" name="message" id="message" placeholder="write a message to be send">
+                <input type="text" name="message" id="message" placeholder="write a message to be sent">
             </label>
         </form>
     </div>
