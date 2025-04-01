@@ -4,7 +4,7 @@ require_once "../src/autoload.php";
 
 use chatr\model\Message;
 
-$message = new Message("Salut!");
+$message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])):new Message('...');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -22,6 +22,13 @@ $message = new Message("Salut!");
 <main>
     <div class="main">
         <?= $message ?>
+
+        <form name="sendMessage" id="sendMessage" method="post">
+            <label for="message">
+                Type your message
+                <input type="text" name="message" id="message" placeholder="write a message to be send">
+            </label>
+        </form>
     </div>
 </main>
 
