@@ -11,6 +11,9 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
 <head>
     <title>Ma conversation</title>
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
+    <script type="text/javascript" src="js/conversation.js"></script>
+    <script type="text/javascript" src="js/conversation-init.js"></script>
+
 </head>
 <body>
 <header>
@@ -21,14 +24,16 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
 
 <main>
     <div class="main">
-        <?= $message ?>
-
-        <form name="sendMessage" id="sendMessage" method="post">
-            <label for="message">
-                Type your message
-                <input type="text" name="message" id="message" placeholder="write a message to be sent">
-            </label>
-        </form>
+        <div class="conversation">
+            <div><?= $message ?></div>
+        </div>
+        <label for="message">
+            Type your message
+            <input type="text" name="message" id="message" placeholder="write a message to be sent">
+        </label>
+        <label for="send">
+            <input type="button" name="ok" id="submit" value="OK">
+        </label>
     </div>
 </main>
 
