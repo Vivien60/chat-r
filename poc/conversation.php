@@ -13,7 +13,15 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
     <script type="text/javascript" src="js/conversation.js"></script>
     <script type="text/javascript" src="js/conversation-init.js"></script>
+    <script type="text/javascript">
+        window.conversation = {};
+        window.conversation.config = () => ({
+            messageInput: document.querySelector('#message'),
+            sendButton: document.querySelector('#submit'),
+            messagesContainer: document.querySelector('#conversation')
+        });
 
+    </script>
 </head>
 <body>
 <header>
@@ -24,7 +32,7 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
 
 <main>
     <div class="main">
-        <div class="conversation">
+        <div id="conversation">
             <div><?= $message ?></div>
         </div>
         <label for="message">
