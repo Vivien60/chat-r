@@ -11,8 +11,8 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
 <head>
     <title>Ma conversation</title>
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
-    <script type="text/javascript" src="js/chat.js"></script>
-    <script type="text/javascript" src="js/conversation-init.js"></script>
+    <script type="module" src="js/chatUI.js"></script>
+    <script type="module" src="js/conversation-init.js"></script>
     <script type="text/javascript">
         window.conversation = {};
         window.conversation.config = () => ({
@@ -20,7 +20,6 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
             sendButton: document.querySelector('#submit'),
             messagesContainer: document.querySelector('#conversation')
         });
-        notifyMe();
 
     </script>
 </head>
