@@ -4,14 +4,14 @@ require_once "../src/autoload.php";
 
 use chatr\model\Message;
 
-$message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])):new Message('...');
+$message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])):new Message('');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <title>Ma conversation</title>
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
-    <script type="text/javascript" src="js/conversation.js"></script>
+    <script type="text/javascript" src="js/chat.js"></script>
     <script type="text/javascript" src="js/conversation-init.js"></script>
     <script type="text/javascript">
         window.conversation = {};
@@ -20,6 +20,7 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
             sendButton: document.querySelector('#submit'),
             messagesContainer: document.querySelector('#conversation')
         });
+        notifyMe();
 
     </script>
 </head>
