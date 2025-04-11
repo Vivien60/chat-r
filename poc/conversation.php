@@ -13,6 +13,7 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
     <script type="module" src="js/chatUI.js"></script>
     <script type="module" src="js/conversation-init.js"></script>
+    <script type="text/javascript" src="js/notifier.js"></script>
     <script type="text/javascript">
         window.conversation = {};
         window.conversation.config = () => ({
@@ -21,6 +22,28 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
             messagesContainer: document.querySelector('#conversation')
         });
 
+
+
+        window.addEventListener('load', function() {
+            // Check that service workers are supported, if so, progressively
+            // enhance and add push messaging support, otherwise continue without it.
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(initialiseState);
+            } else {
+                console.warn('Service workers aren\'t supported in this browser.');
+            }
+
+            var isPushEnabled = false;
+            var pushButton = document.querySelector('.js-push-button');
+            pushButton.addEventListener('click', function () {
+                if (isPushEnabled) {
+                    //unsubscribe();
+                } else {
+                    subscribe();
+                }
+            });
+        });
     </script>
 </head>
 <body>
@@ -42,7 +65,11 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
         <label for="send">
             <input type="button" name="ok" id="submit" value="OK">
         </label>
+        <div><button class="js-push-button" disabled>
+                Enable Push Messages
+            </button></div>
     </div>
+
 </main>
 
 <footer>
