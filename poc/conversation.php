@@ -13,7 +13,7 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
     <script type="module" src="js/chatUI.js"></script>
     <script type="module" src="js/conversation-init.js"></script>
-    <script type="text/javascript" src="js/notifier.js"></script>
+    <script type="text/javascript" src="js/notificationManager.js"></script>
     <script type="text/javascript">
         window.conversation = {};
         window.conversation.config = () => ({
@@ -29,7 +29,7 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
             // enhance and add push messaging support, otherwise continue without it.
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/service-worker.js')
-                    .then(initialiseState);
+                    .then(initialiseUIState);
             } else {
                 console.warn('Service workers aren\'t supported in this browser.');
             }
@@ -37,11 +37,11 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
             var isPushEnabled = false;
             var pushButton = document.querySelector('.js-push-button');
             pushButton.addEventListener('click', function () {
-                if (isPushEnabled) {
-                    //unsubscribe();
-                } else {
-                    subscribe();
-                }
+                subscribe();
+            });
+            var unsubsctribeButton = document.querySelector('.js-unsubscribe-button');
+            unsubsctribeButton.addEventListener('click', function () {
+                unsubscribe();
             });
         });
     </script>
@@ -67,7 +67,14 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
         </label>
         <div><button class="js-push-button" disabled>
                 Enable Push Messages
-            </button></div>
+            </button>
+            <button class="js-unsubscribe-button" disabled>
+                Disable Push Messages
+            </button>
+            <button class="js-notifyme-button" disabled>
+                Display a notification
+            </button>
+        </div>
     </div>
 
 </main>
