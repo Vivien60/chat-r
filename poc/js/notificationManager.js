@@ -21,8 +21,9 @@ function notificationTransportSubscriptionStatus()
 
     //END OF WORK IN PROGRESS
 }
+
 function initialiseUIState() {
-    console.log('initialiseState');
+    console.log('yoyoyo');
     if(!pushMessagingIsSupported())
     {
         return;
@@ -36,18 +37,19 @@ function initialiseUIState() {
     console.log('yoyoyo');
 
     // We need the service worker registration to check for a subscription
-    navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
+    navigator.serviceWorker.ready
+        .then(function(serviceWorkerRegistration) {
         // Do we already have a push message subscription?
-        serviceWorkerRegistration.pushManager.getSubscription()
-            .then(function(subscription) {
-                initialiseButtonState(subscription);
-                // Keep your server in sync with the latest subscriptionId
-                sendSubscriptionToServer(subscription);
+            serviceWorkerRegistration.pushManager.getSubscription()
+                .then(function(subscription) {
+                    initialiseButtonState(subscription);
+                    // Keep your server in sync with the latest subscriptionId
+                    sendSubscriptionToServer(subscription);
 
-            })
-            .catch(function(err) {
-                console.warn('Error during getSubscription()', err);
-            });
+                })
+                .catch(function(err) {
+                    console.warn('Error during getSubscription()', err);
+                });
     });
 }
 
@@ -127,7 +129,6 @@ function notifyMe(message) {
         } else if (Notification.permission !== "denied") {
             // We need to ask the user for permission
             Notification.requestPermission().then((permission) => {
-                console.log(permission);
                 // If the user accepts, let's create a notification
                 if (permission === "granted") {
                     const notification = new Notification("To do list", { body: text, icon: img });
