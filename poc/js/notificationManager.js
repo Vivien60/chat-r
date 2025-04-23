@@ -4,24 +4,6 @@ const pushButton = document.querySelector('.js-push-button');
 const unsubscribeButton = document.querySelector('.js-unsubscribe-button');
 const notifyMeButton = document.querySelector('.js-notifyme-button');
 
-function notificationTransportSubscriptionStatus()
-{
-    //WORK IN PROGRESS
-    // We need the service worker registration to check for a subscription
-    navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
-        // Do we already have a push message subscription?
-        const subscribed = serviceWorkerRegistration.pushManager.getSubscription()
-            .then(function(subscription) {
-                return true;
-            })
-            .catch(function(err) {
-                console.warn('Error during getSubscription()', err);
-            });
-    });
-
-    //END OF WORK IN PROGRESS
-}
-
 function initialiseUIState() {
     console.log('yoyoyo');
     if(!pushMessagingIsSupported())
@@ -37,21 +19,22 @@ function initialiseUIState() {
     console.log('yoyoyo');
 
     // We need the service worker registration to check for a subscription
-    navigator.serviceWorker.ready
-        .then(function(serviceWorkerRegistration) {
-        // Do we already have a push message subscription?
-            serviceWorkerRegistration.pushManager.getSubscription()
-                .then(function(subscription) {
-                    initialiseButtonState(subscription);
-                    // Keep your server in sync with the latest subscriptionId
-                    sendSubscriptionToServer(subscription);
-
-                })
-                .catch(function(err) {
-                    console.warn('Error during getSubscription()', err);
-                });
+    getNotificationSubscription()
+        .then(function(subscription) {
+            initialiseButtonState(subscription);
+            // Keep your server in sync with the latest subscriptionId
+            sendSubscriptionToServer(subscription);
     });
 }
+
+async function getNotificationSubscription()
+{
+    const registration = await navigator.serviceWorker.getRegistration();
+    const subscription = await registration.pushManager.getSubscription();
+
+    return subscription;
+}
+
 
 function initialiseButtonState(subscription)
 {
@@ -73,9 +56,7 @@ function initialiseButtonState(subscription)
 
 async function unsubscribe()
 {
-    const registration = await navigator.serviceWorker.getRegistration();
-    const subscription = await registration.pushManager.getSubscription();
-
+    const subscription = await getNotificationSubscription();
     const unsubscribed = await subscription.unsubscribe();
     if (unsubscribed) {
         console.info('Successfully unsubscribed from push notifications.');

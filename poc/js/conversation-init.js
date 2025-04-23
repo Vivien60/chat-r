@@ -25,4 +25,6 @@ window.addEventListener('load', function() {
     notifyMeButton.addEventListener('click', function () {
         notifyMe({});
     });
+
+
 });
