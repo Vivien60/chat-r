@@ -1,75 +1,43 @@
-// Once the service worker is registered set the initial state
-
-const pushButton = document.querySelector('.js-push-button');
-const unsubscribeButton = document.querySelector('.js-unsubscribe-button');
-const notifyMeButton = document.querySelector('.js-notifyme-button');
-
-function initialiseUIState() {
-    console.log('yoyoyo');
+async function initializeState() {
     if(!pushMessagingIsSupported())
     {
         return;
     }
 
-    if (Notification.permission === 'denied') {
+    if (notificationsAreDisallowedByUser())
+    {
         console.log('The user has blocked notifications.');
         return;
     }
 
-    console.log('yoyoyo');
-
-    // We need the service worker registration to check for a subscription
-    getNotificationSubscription()
-        .then(function(subscription) {
-            initialiseButtonState(subscription);
-            // Keep your server in sync with the latest subscriptionId
-            sendSubscriptionToServer(subscription);
-    });
+    const subscription = await getPushSubscription();
+    initialisePushState(subscription);
+    initialiseUIState(subscription);
 }
 
-async function getNotificationSubscription()
-{
-    const registration = await navigator.serviceWorker.getRegistration();
-    const subscription = await registration.pushManager.getSubscription();
-
-    return subscription;
-}
-
-
-function initialiseButtonState(subscription)
-{
-    const pushButton = document.querySelector('.js-push-button');
-    const unsubscribeButton = document.querySelector('.js-unsubscribe-button');
-    const notifyMeButton = document.querySelector('.js-notifyme-button');
-    console.log('then then soyons then');
-    if (!subscription) {
-        pushButton.disabled = false;
-        unsubscribeButton.disabled = true;
-        notifyMeButton.disabled = true;
-        return;
+function pushMessagingIsSupported() {
+    // Are Notifications supported in the service worker?
+    if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
+        console.warn('Notifications aren\'t supported.');
+        console.log('Notifications aren\'t supported.');
+        return false;
     }
 
-    pushButton.disabled = true;
-    unsubscribeButton.disabled = false;
-    notifyMeButton.disabled = false;
-}
-
-async function unsubscribe()
-{
-    const subscription = await getNotificationSubscription();
-    const unsubscribed = await subscription.unsubscribe();
-    if (unsubscribed) {
-        console.info('Successfully unsubscribed from push notifications.');
-        initialiseUIState(subscription);
+    // Check if push messaging is supported
+    if (!('PushManager' in window)) {
+        console.log('Push messaging isn\'t supported.');
+        return false;
     }
+
+    return true;
 }
 
+function notificationsAreDisallowedByUser() {
+    return Notification.permission === 'denied';
+}
 
 function subscribe() {
-    const pushButton = document.querySelector('.js-push-button');
-    // Disable the button so it can't be changed while
-    // we process the permission request
-    pushButton.disabled = true;
+    disallowSubscriptionByUI();
 
     navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
         serviceWorkerRegistration.pushManager.subscribe()
@@ -77,19 +45,76 @@ function subscribe() {
                 // TODO: Send the subscription.endpoint to your server
                 // and save it to send a push message at a later date
 
+                initialiseUIState(subscription);
                 return sendSubscriptionToServer(subscription);
             })
             .catch(function(e) {
-                if (Notification.permission === 'denied') {
+                if (notificationsAreDisallowedByUser()) {
                     console.warn('Permission for Notifications was denied');
                 } else {
                     console.error('Unable to subscribe to push.', e);
                 }
-            })
-            .finally(function() {
                 initialiseUIState();
-            });
+            })
     });
+}
+
+function disallowSubscriptionByUI() {
+    const pushButton = document.querySelector('.js-push-button');
+    // Disable the button so it can't be changed while
+    // we process the permission request
+    pushButton.disabled = true;
+}
+
+function sendSubscriptionToServer(subscription)
+{
+    console.log(subscription);
+}
+
+async function unsubscribe()
+{
+    const subscription = await getPushSubscription();
+    const unsubscribed = await subscription.unsubscribe();
+    if (unsubscribed) {
+        console.info('Successfully unsubscribed from push notifications.');
+        initialiseUIState(!unsubscribed);
+    }
+}
+
+
+function initialiseUIState(subscriptionIsActive) {
+    initialiseButtonState(subscriptionIsActive);
+    // Keep your server in sync with the latest subscriptionId
+}
+
+function initialiseButtonState(subscriptionIsActive)
+{
+    const subscribeToPushButton = document.querySelector('.js-push-button');
+    const unsubscribeButton = document.querySelector('.js-unsubscribe-button');
+    const notifyMeButton = document.querySelector('.js-notifyme-button');
+
+    if (!subscriptionIsActive) {
+        subscribeToPushButton.disabled = false;
+        unsubscribeButton.disabled = true;
+        notifyMeButton.disabled = true;
+        return;
+    }
+
+    subscribeToPushButton.disabled = true;
+    unsubscribeButton.disabled = false;
+    notifyMeButton.disabled = false;
+}
+
+function initialisePushState(subscription) {
+    sendSubscriptionToServer(subscription);
+}
+
+async function getPushSubscription()
+{
+    const registration = await navigator.serviceWorker.getRegistration();
+    const subscription = await registration.pushManager.getSubscription();
+
+    return subscription;
 }
 
 function notifyMe(message) {
@@ -121,28 +146,6 @@ function notifyMe(message) {
 
     // At last, if the user has denied notifications, and you
     // want to be respectful there is no need to bother them anymore.
-}
-
-function pushMessagingIsSupported() {
-    // Are Notifications supported in the service worker?
-    if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
-        console.warn('Notifications aren\'t supported.');
-        console.log('Notifications aren\'t supported.');
-        return false;
-    }
-
-    // Check if push messaging is supported
-    if (!('PushManager' in window)) {
-        console.log('Push messaging isn\'t supported.');
-        return false;
-    }
-
-    return true;
-}
-
-function sendSubscriptionToServer(subscription)
-{
-    console.log(subscription);
 }
 
 function unsubscribeOnServer(subscription)
