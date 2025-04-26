@@ -1,9 +1,8 @@
 async function initializeState() {
-    if(!pushMessagingIsSupported())
+    if(!pushNotificationsAreSupported())
     {
         return;
     }
-
     if (notificationsAreDisallowedByUser())
     {
         console.log('The user has blocked notifications.');
@@ -15,20 +14,24 @@ async function initializeState() {
     initialiseUIState(subscription);
 }
 
-function pushMessagingIsSupported() {
-    // Are Notifications supported in the service worker?
+function pushNotificationsAreSupported() {
+    return notificationsAreSupported() && pushServiceIsSupported();
+}
+
+function notificationsAreSupported() {
     if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
         console.warn('Notifications aren\'t supported.');
         console.log('Notifications aren\'t supported.');
         return false;
     }
+    return true;
+}
 
-    // Check if push messaging is supported
+function pushServiceIsSupported() {
     if (!('PushManager' in window)) {
         console.log('Push messaging isn\'t supported.');
         return false;
     }
-
     return true;
 }
 
@@ -36,39 +39,38 @@ function notificationsAreDisallowedByUser() {
     return Notification.permission === 'denied';
 }
 
-function subscribe() {
-    disallowSubscriptionByUI();
+async function subscribe() {
+    let subscription = await pushServiceIsReady()
+        .then(pushServiceSubscribe)
+        .catch(displaySubscriptionError);
+    sendSubscriptionToServer(subscription);
 
-    navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
-        serviceWorkerRegistration.pushManager.subscribe()
-            .then(function(subscription) {
-                // TODO: Send the subscription.endpoint to your server
-                // and save it to send a push message at a later date
-
-                initialiseUIState(subscription);
-                return sendSubscriptionToServer(subscription);
-            })
-            .catch(function(e) {
-                if (notificationsAreDisallowedByUser()) {
-                    console.warn('Permission for Notifications was denied');
-                } else {
-                    console.error('Unable to subscribe to push.', e);
-                }
-                initialiseUIState();
-            })
-    });
+    return subscription;
 }
 
-function disallowSubscriptionByUI() {
-    const pushButton = document.querySelector('.js-push-button');
-    // Disable the button so it can't be changed while
-    // we process the permission request
-    pushButton.disabled = true;
+function pushServiceIsReady() {
+    return navigator.serviceWorker.ready;
+}
+
+function pushServiceSubscribe(serviceWorkerRegistration) {
+    throw new Error('Not implemented');
+    return serviceWorkerRegistration.pushManager.subscribe()
+}
+
+function displaySubscriptionError(e) {
+    if (notificationsAreDisallowedByUser()) {
+        console.warn('Permission for Notifications was denied');
+    } else {
+        console.error('Unable to subscribe to push.', e);
+    }
+    return null;
 }
 
 function sendSubscriptionToServer(subscription)
 {
-    console.log(subscription);
+    // TODO: Send the subscription.endpoint to your server
+    // and save it to send a push message at a later date
+    console.log('aaa', subscription);
 }
 
 async function unsubscribe()
@@ -81,6 +83,12 @@ async function unsubscribe()
     }
 }
 
+function disallowSubscriptionByUI() {
+    const pushButton = document.querySelector('.js-push-button');
+    // Disable the button so it can't be changed while
+    // we process the permission request
+    pushButton.disabled = true;
+}
 
 function initialiseUIState(subscriptionIsActive) {
     initialiseButtonState(subscriptionIsActive);
@@ -119,7 +127,7 @@ async function getPushSubscription()
 
 function notifyMe(message) {
 
-    if (!pushMessagingIsSupported()) {
+    if (!pushNotificationsAreSupported()) {
         // Check if the browser supports notifications
         alert("This browser does not support desktop notification");
     } else {

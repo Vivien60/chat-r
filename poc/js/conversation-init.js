@@ -16,8 +16,9 @@ window.addEventListener('load', function() {
         console.warn('Service workers aren\'t supported in this browser.');
     }
 
-    pushButton.addEventListener('click', function () {
-        subscribe();
+    pushButton.addEventListener('click', async function () {
+        disallowSubscriptionByUI();
+        subscribe().then(initialiseUIState);
     });
     unsubscribeButton.addEventListener('click', function () {
         unsubscribe();
