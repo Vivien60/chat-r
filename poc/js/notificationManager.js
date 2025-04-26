@@ -53,7 +53,6 @@ function pushServiceIsReady() {
 }
 
 function pushServiceSubscribe(serviceWorkerRegistration) {
-    throw new Error('Not implemented');
     return serviceWorkerRegistration.pushManager.subscribe()
 }
 
