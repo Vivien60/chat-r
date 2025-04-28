@@ -11,7 +11,10 @@ window.addEventListener('load', function() {
     // enhance and add push messaging support, otherwise continue without it.
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
-            .then(initializeState);
+            .then(function(success) {
+                actualizePushNotifierStatus().then(initialiseUIState);
+
+            });
     } else {
         console.warn('Service workers aren\'t supported in this browser.');
     }
@@ -21,7 +24,10 @@ window.addEventListener('load', function() {
         subscribe().then(initialiseUIState);
     });
     unsubscribeButton.addEventListener('click', function () {
-        unsubscribe();
+        disallowSubscriptionByUI();
+        unsubscribe().then(function(success){
+            initialiseUIState(!success);
+        });
     });
     notifyMeButton.addEventListener('click', function () {
         notifyMe({});
@@ -29,3 +35,27 @@ window.addEventListener('load', function() {
 
 
 });
+
+function initialiseUIState(subscriptionIsActive = false) {
+    initialiseButtonState(subscriptionIsActive);
+    // Keep your server in sync with the latest subscriptionId
+}
+
+function initialiseButtonState(subscriptionIsActive)
+{
+    console.log('initialiseButtonState', subscriptionIsActive);
+    const subscribeToPushButton = document.querySelector('.js-push-button');
+    const unsubscribeButton = document.querySelector('.js-unsubscribe-button');
+    const notifyMeButton = document.querySelector('.js-notifyme-button');
+
+    if (!subscriptionIsActive) {
+        subscribeToPushButton.disabled = false;
+        unsubscribeButton.disabled = true;
+        notifyMeButton.disabled = true;
+        return;
+    }
+
+    subscribeToPushButton.disabled = true;
+    unsubscribeButton.disabled = false;
+    notifyMeButton.disabled = false;
+}
