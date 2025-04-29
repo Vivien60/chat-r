@@ -1,36 +1,28 @@
 import ChatUIHandler from "./chatUI.js";
+import PushMessaging from "./pushMessaging.js";
 
 const {messageInput, sendButton, messagesContainer} = conversation.config();
-let chat = new ChatUIHandler({messageInput, messagesContainer, sendButton});
+let messaging = await new PushMessaging();
+let chat = new ChatUIHandler({messageInput, messagesContainer, sendButton}, messaging);
 chat.init();
-
+initialiseUIState();
 window.addEventListener('load', function() {
 
     const {pushButton, unsubscribeButton, notifyMeButton} = pushMessaging.config();
-    // Check that service workers are supported, if so, progressively
-    // enhance and add push messaging support, otherwise continue without it.
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js')
-            .then(function(success) {
-                actualizePushNotifierStatus().then(initialiseUIState);
-
-            });
-    } else {
-        console.warn('Service workers aren\'t supported in this browser.');
-    }
 
     pushButton.addEventListener('click', async function () {
-        disallowSubscriptionByUI();
-        subscribe().then(initialiseUIState);
+        messaging.disallowSubscriptionByUI();
+        let subscribed = messaging.subscribe();
+        initialiseUIState(subscribed);
     });
     unsubscribeButton.addEventListener('click', function () {
-        disallowSubscriptionByUI();
-        unsubscribe().then(function(success){
+        messaging.disallowSubscriptionByUI();
+        messaging.unsubscribe().then(function(success){
             initialiseUIState(!success);
         });
     });
     notifyMeButton.addEventListener('click', function () {
-        notifyMe({});
+        messaging.notifyMe({});
     });
 
 

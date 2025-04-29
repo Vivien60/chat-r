@@ -1,7 +1,7 @@
 // Chat.js
 // Classe principale du chat, agnostique du mode de transport
 export default class ChatUIHandler {
-    constructor({messageInput, messagesContainer, sendButton}) {
+    constructor({messageInput, messagesContainer, sendButton}, transportService) {
         this.messageInput = messageInput;
         this.messagesContainer = messagesContainer;
         this.sendButton = sendButton;
