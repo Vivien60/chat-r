@@ -2,15 +2,40 @@
 export default class PushMessaging {
 
     constructor() {
-        this.setPushSubscriptionFromBrowser();
-        // Check that service workers are supported, if so, progressively
-        // enhance and add push messaging support, otherwise continue without it.
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(this.actualizePushNotifierStatus.bind(this));
-        } else {
-            console.warn('Service workers aren\'t supported in this browser.');
+
+    }
+
+    async setUp() {
+        if (!this.canUseNotificationPush()) {
+            this.subscription = null;
+            return;
         }
+        await this.registerServiceWorker();
+        this.subscription = await this.syncStatusWithBrowserSubscription();
+    }
+
+    registerServiceWorker() {
+        return navigator.serviceWorker.register('/service-worker.js');
+    }
+
+    syncOnServer() {
+        this.sendSubscriptionToServer();
+    }
+
+    async actualizePushNotifierStatus() {
+        if (!this.canUseNotificationPush()) {
+            return;
+        }
+        await this.registerServiceWorker();
+        const subscription = await this.syncStatusWithBrowserSubscription();
+        return subscription;
+    }
+
+    async syncStatusWithBrowserSubscription() {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const subscription = await registration.pushManager.getSubscription();
+        this.subscription = subscription;
+        return subscription;
     }
 
     subscribe() {
@@ -57,13 +82,6 @@ export default class PushMessaging {
         return this.subscription.unsubscribe();
     }
 
-    async setPushSubscriptionFromBrowser() {
-        const registration = await navigator.serviceWorker.getRegistration();
-        const subscription = await registration.pushManager.getSubscription();
-        this.subscription = subscription;
-        return subscription;
-    }
-
     unsubscribeOnServer() {
         return;
         //TODO :
@@ -74,16 +92,6 @@ export default class PushMessaging {
             },
             body: JSON.stringify({endpoint: this.subscription.endpoint})
         });
-    }
-
-    async actualizePushNotifierStatus() {
-        if (!this.canUseNotificationPush()) {
-            return;
-        }
-
-        const subscription = await this.setPushSubscriptionFromBrowser();
-        this.actualizePushState(subscription);
-        return subscription;
     }
 
     canUseNotificationPush() {
@@ -103,7 +111,7 @@ export default class PushMessaging {
     }
 
     pushServiceIsSupported() {
-        if (!('PushManager' in window)) {
+        if (!('PushManager' in window) || !('serviceWorker' in navigator)) {
             console.log('Push messaging isn\'t supported.');
             return false;
         }
@@ -119,9 +127,7 @@ export default class PushMessaging {
         return false;
     }
 
-    actualizePushState() {
-        this.sendSubscriptionToServer();
-    }
+
 
     notifyMe(message) {
 
@@ -152,12 +158,5 @@ export default class PushMessaging {
 
         // At last, if the user has denied notifications, and you
         // want to be respectful there is no need to bother them anymore.
-    }
-
-    disallowSubscriptionByUI() {
-        const pushButton = document.querySelector('.js-push-button');
-        // Disable the button so it can't be changed while
-        // we process the permission request
-        pushButton.disabled = true;
     }
 }

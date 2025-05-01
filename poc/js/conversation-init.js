@@ -1,37 +1,31 @@
-import ChatUIHandler from "./chatUI.js";
-import PushMessaging from "./pushMessaging.js";
+import ChatUIHandler from "./ChatUI.js";
+import PushMessaging from "./PushMessaging.js";
 
 const {messageInput, sendButton, messagesContainer} = conversation.config();
-let messaging = await new PushMessaging();
-let chat = new ChatUIHandler({messageInput, messagesContainer, sendButton}, messaging);
-chat.init();
-initialiseUIState();
-window.addEventListener('load', function() {
-
-    const {pushButton, unsubscribeButton, notifyMeButton} = pushMessaging.config();
-
-    pushButton.addEventListener('click', async function () {
-        messaging.disallowSubscriptionByUI();
-        let subscribed = messaging.subscribe();
-        initialiseUIState(subscribed);
+let messaging = new PushMessaging();
+let chat = await messaging.setUp()
+    .then(messaging.syncOnServer.bind(messaging))
+    .then(function() {
+        let chat = new ChatUIHandler({messageInput, messagesContainer, sendButton}, messaging);
+        chat.init();
+        return chat;
     });
-    unsubscribeButton.addEventListener('click', function () {
-        messaging.disallowSubscriptionByUI();
-        messaging.unsubscribe().then(function(success){
-            initialiseUIState(!success);
-        });
-    });
-    notifyMeButton.addEventListener('click', function () {
-        messaging.notifyMe({});
-    });
+const {pushButton, unsubscribeButton, notifyMeButton} = pushMessaging.config();
 
-
+pushButton.addEventListener('click', async function (   ) {
+    chat.disallowSubscriptionByUI();
+    let subscribed = messaging.subscribe();
+    chat.actualizeButtonState(subscribed);
 });
-
-function initialiseUIState(subscriptionIsActive = false) {
-    initialiseButtonState(subscriptionIsActive);
-    // Keep your server in sync with the latest subscriptionId
-}
+unsubscribeButton.addEventListener('click', function () {
+    chat.disallowSubscriptionByUI();
+    messaging.unsubscribe().then(function(success){
+        chat.actualizeButtonState(!success);
+    });
+});
+notifyMeButton.addEventListener('click', function () {
+    messaging.notifyMe({});
+});
 
 function initialiseButtonState(subscriptionIsActive)
 {

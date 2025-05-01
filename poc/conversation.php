@@ -11,9 +11,9 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
 <head>
     <title>Ma conversation</title>
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
-    <script type="module" src="js/chatUI.js"></script>
+    <script type="module" src="js/ChatUI.js"></script>
     <script type="module" src="js/conversation-init.js"></script>
-    <script type="module" src="js/pushMessaging.js"></script>
+    <script type="module" src="js/PushMessaging.js"></script>
     <script type="text/javascript">
         window.conversation = {};
         window.conversation.config = () => ({

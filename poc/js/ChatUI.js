@@ -8,6 +8,7 @@ export default class ChatUIHandler {
     }
 
     init() {
+        this.actualizeButtonState();
         this.sendButton.addEventListener('click', () => {
             this.sendMessage(this.messageInput.value);
         })
@@ -43,5 +44,30 @@ export default class ChatUIHandler {
 
     clearInput() {
         this.messageInput.value = '';
+    }
+
+    actualizeButtonState(subscriptionIsActive)
+    {
+        const subscribeToPushButton = document.querySelector('.js-push-button');
+        const unsubscribeButton = document.querySelector('.js-unsubscribe-button');
+        const notifyMeButton = document.querySelector('.js-notifyme-button');
+
+        if (!subscriptionIsActive) {
+            subscribeToPushButton.disabled = false;
+            unsubscribeButton.disabled = true;
+            notifyMeButton.disabled = true;
+            return;
+        }
+
+        subscribeToPushButton.disabled = true;
+        unsubscribeButton.disabled = false;
+        notifyMeButton.disabled = false;
+    }
+
+    disallowSubscriptionByUI() {
+        const pushButton = document.querySelector('.js-push-button');
+        // Disable the button so it can't be changed while
+        // we process the permission request
+        pushButton.disabled = true;
     }
 }
