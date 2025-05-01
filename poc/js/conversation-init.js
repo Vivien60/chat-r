@@ -26,22 +26,3 @@ unsubscribeButton.addEventListener('click', function () {
 notifyMeButton.addEventListener('click', function () {
     messaging.notifyMe({});
 });
-
-function initialiseButtonState(subscriptionIsActive)
-{
-    console.log('initialiseButtonState', subscriptionIsActive);
-    const subscribeToPushButton = document.querySelector('.js-push-button');
-    const unsubscribeButton = document.querySelector('.js-unsubscribe-button');
-    const notifyMeButton = document.querySelector('.js-notifyme-button');
-
-    if (!subscriptionIsActive) {
-        subscribeToPushButton.disabled = false;
-        unsubscribeButton.disabled = true;
-        notifyMeButton.disabled = true;
-        return;
-    }
-
-    subscribeToPushButton.disabled = true;
-    unsubscribeButton.disabled = false;
-    notifyMeButton.disabled = false;
-}
