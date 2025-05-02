@@ -1,8 +1,8 @@
 // Transport de messages
 export default class PushMessaging {
 
-    constructor() {
-
+    constructor(serviceWorkerFile = '/service-worker.js') {
+        this.serviceWorkerFile = serviceWorkerFile;
     }
 
     async setUp() {
@@ -10,12 +10,12 @@ export default class PushMessaging {
             this.subscription = null;
             return;
         }
-        await this.registerServiceWorker();
+        await this.registerServiceWorker(this.serviceWorkerFile);
         this.subscription = await this.syncStatusWithBrowserSubscription();
     }
 
-    registerServiceWorker() {
-        return navigator.serviceWorker.register('/service-worker.js');
+    registerServiceWorker(serviceWorkerFile) {
+        return navigator.serviceWorker.register(serviceWorkerFile);
     }
 
     syncOnServer() {
