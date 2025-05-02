@@ -1,4 +1,4 @@
-// Classe principale du chat, agnostique du mode de transport
+// Transport de messages
 export default class PushMessaging {
 
     constructor() {
@@ -129,27 +129,23 @@ export default class PushMessaging {
 
 
 
-    notifyMe(message) {
+    notifyMe(message, notificationOptions) {
 
         if (!this.notificationsAreSupported()) {
             // Check if the browser supports notifications
             console.warn("This browser does not support desktop notification");
         } else {
-            const title = "doing something";
-            const img = "/img/the_shape_of_the_phoenix.png";
-            const text = `HEY! Your task "${title}" is now overdue.`;
-
             if (Notification.permission === "granted") {
                 // Check whether notification permissions have already been granted;
                 // if so, create a notification
-                const notification = new Notification("To do list", {body: text, icon: img});
+                const notification = new Notification(message, {body: notificationOptions.body, icon: notificationOptions.img});
                 // …
             } else if (Notification.permission !== "denied") {
                 // We need to ask the user for permission
                 Notification.requestPermission().then((permission) => {
                     // If the user accepts, let's create a notification
                     if (permission === "granted") {
-                        const notification = new Notification("To do list", {body: text, icon: img});
+                        const notification = new Notification(message, {body: notificationOptions.body, icon: notificationOptions.img});
                         // …
                     }
                 });

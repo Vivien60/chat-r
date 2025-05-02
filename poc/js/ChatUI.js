@@ -1,10 +1,14 @@
 // Chat.js
 // Classe principale du chat, agnostique du mode de transport
 export default class ChatUIHandler {
-    constructor({messageInput, messagesContainer, sendButton}, transportService) {
+    constructor({messageInput, messagesContainer, sendButton}, transportService, {pushButton, unsubscribeButton, notifyMeButton}) {
         this.messageInput = messageInput;
         this.messagesContainer = messagesContainer;
         this.sendButton = sendButton;
+        this.transportService = transportService;
+        this.pushButton = pushButton;
+        this.unsubscribeButton = unsubscribeButton;
+        this.notifyMeButton = notifyMeButton;
     }
 
     init() {
@@ -18,6 +22,20 @@ export default class ChatUIHandler {
                 this.sendMessage(this.messageInput.value);
             }
         });
+        this.pushButton.addEventListener('click', async function (   ) {
+            this.disallowSubscriptionByUI();
+            let subscribed = this.transportService.subscribe();
+            this.actualizeButtonState(subscribed);
+        }.bind(this));
+        this.unsubscribeButton.addEventListener('click', function () {
+            this.disallowSubscriptionByUI();
+            this.transportService.unsubscribe().then(function(success){
+                this.actualizeButtonState(!success);
+            }.bind(this));
+        }.bind(this));
+        this.notifyMeButton.addEventListener('click', function () {
+            this.notifyMe({});
+        }.bind(this));
     }
 
     sendMessage(content) {
@@ -48,26 +66,28 @@ export default class ChatUIHandler {
 
     actualizeButtonState(subscriptionIsActive)
     {
-        const subscribeToPushButton = document.querySelector('.js-push-button');
-        const unsubscribeButton = document.querySelector('.js-unsubscribe-button');
-        const notifyMeButton = document.querySelector('.js-notifyme-button');
-
         if (!subscriptionIsActive) {
-            subscribeToPushButton.disabled = false;
-            unsubscribeButton.disabled = true;
-            notifyMeButton.disabled = true;
+            this.pushButton.disabled = false;
+            this.unsubscribeButton.disabled = true;
+            this.notifyMeButton.disabled = true;
             return;
         }
 
-        subscribeToPushButton.disabled = true;
-        unsubscribeButton.disabled = false;
-        notifyMeButton.disabled = false;
+        this.pushButton.disabled = true;
+        this.unsubscribeButton.disabled = false;
+        this.notifyMeButton.disabled = false;
     }
 
     disallowSubscriptionByUI() {
-        const pushButton = document.querySelector('.js-push-button');
         // Disable the button so it can't be changed while
         // we process the permission request
-        pushButton.disabled = true;
+        this.pushButton.disabled = true;
+    }
+
+    notifyMe( message ){
+        const title = "doing something";
+        const img = "/img/the_shape_of_the_phoenix.png";
+        const text = `HEY! Your task "${title}" is now overdue.`;
+        this.transportService.notifyMe(text, {title, img});
     }
 }
