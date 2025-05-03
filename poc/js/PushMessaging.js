@@ -18,24 +18,22 @@ export default class PushMessaging {
         return navigator.serviceWorker.register(serviceWorkerFile);
     }
 
-    syncOnServer() {
-        this.sendSubscriptionToServer();
-    }
-
-    async actualizePushNotifierStatus() {
-        if (!this.canUseNotificationPush()) {
-            return;
-        }
-        await this.registerServiceWorker();
-        const subscription = await this.syncStatusWithBrowserSubscription();
-        return subscription;
-    }
-
     async syncStatusWithBrowserSubscription() {
         const registration = await navigator.serviceWorker.getRegistration();
         const subscription = await registration.pushManager.getSubscription();
         this.subscription = subscription;
         return subscription;
+    }
+
+    syncOnServer() {
+        this.sendSubscriptionToServer();
+    }
+
+    canUseNotificationPush() {
+        if (this.notificationsAreSupported() && this.pushServiceIsSupported()) {
+            return !this.notificationsAreDisallowedByUser();
+        }
+        return false;
     }
 
     subscribe() {
@@ -94,13 +92,6 @@ export default class PushMessaging {
         });
     }
 
-    canUseNotificationPush() {
-        if (this.notificationsAreSupported() && this.pushServiceIsSupported()) {
-            return !this.notificationsAreDisallowedByUser();
-        }
-        return false;
-    }
-
     notificationsAreSupported() {
         if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
             console.warn('Notifications aren\'t supported.');
@@ -133,7 +124,7 @@ export default class PushMessaging {
 
         if (!this.notificationsAreSupported()) {
             // Check if the browser supports notifications
-            console.warn("This browser does not support desktop notification");
+            throw new Error("This browser does not support desktop notification");
         } else {
             if (Notification.permission === "granted") {
                 // Check whether notification permissions have already been granted;
@@ -151,8 +142,5 @@ export default class PushMessaging {
                 });
             }
         }
-
-        // At last, if the user has denied notifications, and you
-        // want to be respectful there is no need to bother them anymore.
     }
 }

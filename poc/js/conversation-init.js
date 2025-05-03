@@ -1,7 +1,7 @@
 import ChatUIHandler from "./ChatUI.js";
 import PushMessaging from "./PushMessaging.js";
 
-initChat(conversation.config(), pushMessaging.config());
+initChat(conversation.config(), pushMessaging.config()).then(console.log);
 async function initChat({messageInput, messagesContainer, sendButton}, {pushButton, unsubscribeButton, notifyMeButton})
 {
     let messaging = new PushMessaging();

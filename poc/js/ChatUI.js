@@ -9,54 +9,54 @@ export default class ChatUIHandler {
         this.pushButton = pushButton;
         this.unsubscribeButton = unsubscribeButton;
         this.notifyMeButton = notifyMeButton;
+        this.subscriptionIsActive = false;
+        this.notificationsAreAllowed = false;
     }
 
     init() {
-        this.actualizeButtonState();
-        this.sendButton.addEventListener('click', () => {
-            this.sendMessage(this.messageInput.value);
-        })
-
-        this.messageInput.addEventListener("keydown", (e) => {
-            if(e.key.toLowerCase() === 'enter') {
-                this.sendMessage(this.messageInput.value);
-            }
-        });
-        this.pushButton.addEventListener('click', async function (   ) {
-            this.disallowSubscriptionByUI();
-            let subscribed = this.transportService.subscribe();
-            this.actualizeButtonState(subscribed);
-        }.bind(this));
-        this.unsubscribeButton.addEventListener('click', function () {
-            this.disallowSubscriptionByUI();
-            this.transportService.unsubscribe().then(function(success){
-                this.actualizeButtonState(!success);
-            }.bind(this));
-        }.bind(this));
-        this.notifyMeButton.addEventListener('click', function () {
-            this.notifyMe({});
-        }.bind(this));
+        this.syncWithSubscriptionStatus();
+        this.addEventsListeners();
     }
 
-    sendMessage(content) {
+    addEventsListeners() {
+        this.sendButton.addEventListener('click', this.doSendingProcess.bind(this));
+        this.messageInput.addEventListener("keydown", this.doSendingProcessIfGoodKeyIsDown.bind(this));
+        this.pushButton.addEventListener('click', this.doSubscriptionProcess.bind(this));
+        this.unsubscribeButton.addEventListener('click', this.doUnsubscriptionProcess.bind(this));
+        this.notifyMeButton.addEventListener('click', this.doNotifyMeProcess.bind(this));
+    }
+
+    doSendingProcessIfGoodKeyIsDown(e) {
+        if (e.key.toLowerCase() === 'enter') {
+            this.doSendingProcess();
+        }
+    }
+
+    doSendingProcess() {
+        let content = this.messageInput.value;
         if (!content?.trim()) return;
-        const message = {
-            content,
+        const message = this.textToMessage(content);
+        this.handleMessageSending(message);
+    }
+
+    textToMessage(content) {
+        return {
+            text: content,
             timestamp: new Date().toISOString()
         };
-        this.handleMessageSending(message);
     }
 
     handleMessageSending(message)
     {
         this.displayMessage(message);
+        this.doNotifyMeProcess();
         this.clearInput();
     }
 
     displayMessage(message)
     {
         let div = document.createElement("div");
-        div.append(message.content);
+        div.append(message.text);
         this.messagesContainer.append(div);
     }
 
@@ -64,9 +64,29 @@ export default class ChatUIHandler {
         this.messageInput.value = '';
     }
 
-    actualizeButtonState(subscriptionIsActive)
+    doSubscriptionProcess() {
+        this.disallowSubscriptionByUI();
+        this.subscriptionIsActive = !!this.transportService.subscribe();
+        this.syncWithSubscriptionStatus();
+    }
+
+    doUnsubscriptionProcess() {
+        this.disallowSubscriptionByUI();
+        this.transportService.unsubscribe().then(function (success) {
+            this.subscriptionIsActive = !success
+            this.syncWithSubscriptionStatus();
+        }.bind(this));
+    }
+
+    disallowSubscriptionByUI() {
+        // Disable the button so it can't be changed while
+        // we process the permission request
+        this.pushButton.disabled = true;
+    }
+
+    syncWithSubscriptionStatus()
     {
-        if (!subscriptionIsActive) {
+        if (!this.subscriptionIsActive) {
             this.pushButton.disabled = false;
             this.unsubscribeButton.disabled = true;
             this.notifyMeButton.disabled = true;
@@ -78,16 +98,18 @@ export default class ChatUIHandler {
         this.notifyMeButton.disabled = false;
     }
 
-    disallowSubscriptionByUI() {
-        // Disable the button so it can't be changed while
-        // we process the permission request
-        this.pushButton.disabled = true;
-    }
-
-    notifyMe( message ){
+    doNotifyMeProcess(){
         const title = "doing something";
         const img = "/img/the_shape_of_the_phoenix.png";
-        const text = `HEY! Your task "${title}" is now overdue.`;
-        this.transportService.notifyMe(text, {title, img});
+        const text = this.messageInput.value;
+        try {
+            this.transportService.notifyMe(text, {title, img});
+        }
+        catch (e) {
+            console.warn("This browser does not support desktop notification");
+            this.notificationsAreAllowed = false;
+            return;
+        }
+        this.notificationsAreAllowed = true;
     }
 }
