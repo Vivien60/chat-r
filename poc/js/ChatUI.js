@@ -103,7 +103,7 @@ export default class ChatUIHandler {
         const img = "/img/the_shape_of_the_phoenix.png";
         const text = this.messageInput.value;
         try {
-            this.transportService.notifyMe(text, {title, img});
+            this.transportService.notify(text, {title, img});
         }
         catch (e) {
             console.warn("This browser does not support desktop notification");
