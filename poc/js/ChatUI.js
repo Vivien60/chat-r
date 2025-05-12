@@ -1,16 +1,16 @@
 // Chat.js
 // Classe principale du chat, agnostique du mode de transport
 export default class ChatUIHandler {
-    constructor({messageInput, messagesContainer, sendButton}, transportService, {pushButton, unsubscribeButton, notifyMeButton}) {
+    constructor({messageInput, messagesContainer, sendButton}, messagingService, {pushButton, unsubscribeButton, notifyMeButton}) {
         this.messageInput = messageInput;
         this.messagesContainer = messagesContainer;
         this.sendButton = sendButton;
-        this.transportService = transportService;
+        this.messagingService = messagingService;
         this.pushButton = pushButton;
         this.unsubscribeButton = unsubscribeButton;
         this.notifyMeButton = notifyMeButton;
-        this.subscriptionIsActive = false;
-        this.notificationsAreAllowed = false;
+        this.subscriptionIsActive = !!messagingService.subscription;
+        this.notificationsAreAllowed = !!messagingService.subscription;
     }
 
     init() {
@@ -23,7 +23,7 @@ export default class ChatUIHandler {
         this.messageInput.addEventListener("keydown", this.doSendingProcessIfGoodKeyIsDown.bind(this));
         this.pushButton.addEventListener('click', this.doSubscriptionProcess.bind(this));
         this.unsubscribeButton.addEventListener('click', this.doUnsubscriptionProcess.bind(this));
-        this.notifyMeButton.addEventListener('click', this.doNotifyMeProcess.bind(this));
+        this.notifyMeButton.addEventListener('click', this.doSendingProcess.bind(this));
     }
 
     doSendingProcessIfGoodKeyIsDown(e) {
@@ -33,30 +33,22 @@ export default class ChatUIHandler {
     }
 
     doSendingProcess() {
-        let content = this.messageInput.value;
-        if (!content?.trim()) return;
-        const message = this.textToMessage(content);
+        let message = this.messageInput.value;
+        if (!message?.trim()) return;
         this.handleMessageSending(message);
-    }
-
-    textToMessage(content) {
-        return {
-            text: content,
-            timestamp: new Date().toISOString()
-        };
     }
 
     handleMessageSending(message)
     {
         this.displayMessage(message);
-        this.doNotifyMeProcess();
+        this.sendMessageRequest(message);
         this.clearInput();
     }
 
     displayMessage(message)
     {
         let div = document.createElement("div");
-        div.append(message.text);
+        div.append(message);
         this.messagesContainer.append(div);
     }
 
@@ -66,13 +58,13 @@ export default class ChatUIHandler {
 
     doSubscriptionProcess() {
         this.disallowSubscriptionByUI();
-        this.subscriptionIsActive = !!this.transportService.subscribe();
+        this.subscriptionIsActive = !!this.messagingService.subscribe();
         this.syncWithSubscriptionStatus();
     }
 
     doUnsubscriptionProcess() {
         this.disallowSubscriptionByUI();
-        this.transportService.unsubscribe().then(function (success) {
+        this.messagingService.unsubscribe().then(function (success) {
             this.subscriptionIsActive = !success
             this.syncWithSubscriptionStatus();
         }.bind(this));
@@ -98,12 +90,11 @@ export default class ChatUIHandler {
         this.notifyMeButton.disabled = false;
     }
 
-    doNotifyMeProcess(){
+    sendMessageRequest(message){
         const title = "doing something";
         const img = "/img/the_shape_of_the_phoenix.png";
-        const text = this.messageInput.value;
         try {
-            this.transportService.notify(text, {title, img});
+            this.messagingService.send(message, {title, img});
         }
         catch (e) {
             console.warn("This browser does not support desktop notification");

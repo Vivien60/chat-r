@@ -1,5 +1,5 @@
 // Transport de messages
-import PushService from "./PushService";
+import PushService from "./PushService.js";
 
 export default class PushSubscription {
 
@@ -9,14 +9,22 @@ export default class PushSubscription {
     }
 
     async setUp() {
-        return this.pushService.setUp();
+        this.subscription = await this.pushService.setUp();
+        return this.subscription;
+    }
+
+
+    async send(message, notificationOptions) {
+        await this.notify(message, notificationOptions);
+        //this.pushService.send(message);
     }
 
     async notify(message, notificationOptions) {
-        if (!this.#notificationsAreSupported()) {
+        console.log('notifying', this);
+        if (!this.pushService.usable) {
             // Check if the browser supports notifications
             throw new Error("This browser does not support desktop notification");
-        } else if(await this.pushService.requestNotificationPermission()) {
+        } else if(await this.subscribe()) {
             const notification = new Notification(message, {body: notificationOptions.body, icon: notificationOptions.img});
         } else {
             throw new Error("Notifications have not been granted by the user");
@@ -24,7 +32,7 @@ export default class PushSubscription {
     }
 
     async subscribe() {
-        return await this.subscription = this.pushService.makeSubscription();
+        return this.subscription = await this.pushService.subscribe();
     }
 
     async unsubscribe() {
@@ -52,7 +60,7 @@ export default class PushSubscription {
     }
 
     #unsubscribeOnServer() {
-        return;
+        return true;
         //TODO :
         fetch('/remove-subscription', {
             method: 'POST',

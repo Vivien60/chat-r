@@ -1,6 +1,9 @@
 export default class PushService {
     #requestedPermission = false;
     #usability = false;
+    get usable() {
+        return this.#usability;
+    }
     #serviceWorkerFile;
 
     constructor(serviceWorkerFile = '/service-worker.js') {
@@ -8,40 +11,21 @@ export default class PushService {
     }
 
     async setUp() {
-        return this.#setUsability()
-            .then(this.#registerServiceWorker.bind(this))
-            .then(this.#initWithClientSubscription.bind(this))
+        return this.#fetchUsability()
+            .then(this.#initServiceWorker.bind(this))
+            .then(this.#fetchClientSubscription.bind(this))
             .catch(error => Promise.reject(new Error("Push messaging is not supported.")));
     }
 
-    makeSubscription() {
-        return this.#serviceWorkerRegistration()
+    subscribe() {
+        return this.#serviceWorkerRegistrationReady()
             .then(this.#subscribeToPushNotifications.bind(this))
             .then(function() {return this.subscription}.bind(this))
             .catch(error => Promise.reject(new Error("Unable to subscribe to push.")));
     }
 
-    async #subscribeToPushNotifications(serviceWorkerRegistration) {
-        this.subscription = await serviceWorkerRegistration.pushManager.subscribe();
-    }
-
-    async #setUsability() {
+    async #fetchUsability() {
         this.#usability = await this.#isUsable();
-    }
-
-    async #initWithClientSubscription() {
-        const registration = await navigator.serviceWorker.getRegistration();
-        const subscription = await registration.pushManager.getSubscription();
-        this.subscription = subscription;
-        return subscription;
-    }
-
-    #registerServiceWorker() {
-        return navigator.serviceWorker.register(this.#serviceWorkerFile);
-    }
-
-    #serviceWorkerRegistration() {
-        return navigator.serviceWorker.ready;
     }
 
     async #isUsable() {
@@ -65,10 +49,33 @@ export default class PushService {
         return true;
     }
 
+    #initServiceWorker() {
+        return navigator.serviceWorker.register(this.#serviceWorkerFile);
+    }
+
+    async #fetchClientSubscription() {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const subscription = await registration.pushManager.getSubscription();
+        this.subscription = subscription;
+        return subscription;
+    }
+
     async #requestNotificationPermission() {
         this.#requestedPermission = true;
         return await Notification.permission === "granted" ||
             !(Notification.permission === "denied") ||
             Notification.requestPermission();
+    }
+
+    async #subscribeToPushNotifications(serviceWorkerRegistration) {
+        this.subscription = await serviceWorkerRegistration.pushManager.subscribe();
+    }
+
+    #serviceWorkerRegistrationReady() {
+        return navigator.serviceWorker.ready;
+    }
+
+    send(message) {
+        
     }
 }

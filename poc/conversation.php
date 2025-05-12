@@ -13,7 +13,7 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
     <script type="module" src="js/ChatUI.js"></script>
     <script type="module" src="js/conversation-init.js"></script>
-    <script type="module" src="js/PushSubscription"></script>
+    <script type="module" src="js/PushSubscription.js"></script>
     <script type="text/javascript">
         window.conversation = {};
         window.conversation.config = () => ({
