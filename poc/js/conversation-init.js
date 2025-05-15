@@ -1,5 +1,17 @@
-import ChatUIHandler from "./chatUI.js";
+import ChatUIHandler from "./ChatUI.js";
+import PushSubscription from "./PushSubscription.js";
 
-const {messageInput, sendButton, messagesContainer} = conversation.config();
-let chat = new ChatUIHandler({messageInput, messagesContainer, sendButton});
-chat.init();
+initChat(conversation.config(), pushMessaging.config(), await new PushSubscription()).then(function(chat){
+    console.log(chat);
+});
+
+async function initChat(conversationButtons, notificationsButtons, messagingService = null)
+{
+    return messagingService.setUp()
+        .then(messagingService.syncOnServer.bind(messagingService))
+        .then(function() {
+            let chat = new ChatUIHandler(conversationButtons, messagingService, notificationsButtons);
+            chat.init();
+            return chat;
+        });
+}

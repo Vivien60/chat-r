@@ -11,9 +11,9 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
 <head>
     <title>Ma conversation</title>
     <link rel="stylesheet" type="text/css" href="css/general.css" media="screen">
-    <script type="module" src="js/chatUI.js"></script>
+    <script type="module" src="js/ChatUI.js"></script>
     <script type="module" src="js/conversation-init.js"></script>
-    <script type="text/javascript" src="js/notificationManager.js"></script>
+    <script type="module" src="js/PushSubscription.js"></script>
     <script type="text/javascript">
         window.conversation = {};
         window.conversation.config = () => ({
@@ -21,29 +21,13 @@ $message = !empty($_POST['message'])?new Message(htmlentities($_POST['message'])
             sendButton: document.querySelector('#submit'),
             messagesContainer: document.querySelector('#conversation')
         });
-
-
-
-        window.addEventListener('load', function() {
-            // Check that service workers are supported, if so, progressively
-            // enhance and add push messaging support, otherwise continue without it.
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(initialiseUIState);
-            } else {
-                console.warn('Service workers aren\'t supported in this browser.');
-            }
-
-            var isPushEnabled = false;
-            var pushButton = document.querySelector('.js-push-button');
-            pushButton.addEventListener('click', function () {
-                subscribe();
-            });
-            var unsubsctribeButton = document.querySelector('.js-unsubscribe-button');
-            unsubsctribeButton.addEventListener('click', function () {
-                unsubscribe();
-            });
+        window.pushMessaging = {};
+        window.pushMessaging.config = () => ({
+            pushButton: document.querySelector('.js-push-button'),
+            unsubscribeButton: document.querySelector('.js-unsubscribe-button'),
+            notifyMeButton: document.querySelector('.js-notifyme-button')
         });
+
     </script>
 </head>
 <body>
