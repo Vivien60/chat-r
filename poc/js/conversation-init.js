@@ -12,6 +12,8 @@ async function initChat(conversationButtons, notificationsButtons, messagingServ
         .then(function() {
             let chat = new ChatUIHandler(conversationButtons, messagingService, notificationsButtons);
             chat.init();
+            window.messagingService = messagingService;
+            window.chat = chat;
             return chat;
         });
 }

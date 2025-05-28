@@ -10,7 +10,6 @@ export default class ChatUIHandler {
         this.unsubscribeButton = unsubscribeButton;
         this.notifyMeButton = notifyMeButton;
         this.subscriptionIsActive = !!messagingService.subscription;
-        this.notificationsAreAllowed = !!messagingService.subscription;
     }
 
     init() {
@@ -93,14 +92,8 @@ export default class ChatUIHandler {
     sendMessageRequest(message){
         const title = "doing something";
         const img = "/img/the_shape_of_the_phoenix.png";
-        try {
-            this.messagingService.send(message, {title, img});
-        }
-        catch (e) {
-            console.warn("This browser does not support desktop notification");
-            this.notificationsAreAllowed = false;
-            return;
-        }
-        this.notificationsAreAllowed = true;
+            this.messagingService.send(message, {title, img}).catch (e => {
+            console.warn(e);
+        });
     }
 }
