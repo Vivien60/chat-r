@@ -1,6 +1,6 @@
 //TODO Vivien :
 // Possède plusieurs statuts : granted, usability et subscription
-// Voir pour modifier en un seul statut qui contiendrait par étape successives : "usable", "granted" et "subscribed"
+// Voir pour modifier en un seul statut qui contiendrait par étape successives : "usable/compatible", "granted" et "subscribed"
 
 
 export default class PushService {
@@ -18,7 +18,7 @@ export default class PushService {
     }
 
     async setUp() {
-        return this.#fetchUsability()
+        return this.#checkUsability()
             .then(this.#initServiceWorker.bind(this))
             .then(this.#fetchClientSubscription.bind(this))
             .catch(error => Promise.reject(new Error("Push messaging is not supported.")));
@@ -40,7 +40,7 @@ export default class PushService {
         return this.#requestedPermission;
     }
 
-    async #fetchUsability() {
+    async #checkUsability() {
         this.#usability = await this.#isUsable();
     }
 

@@ -3,13 +3,16 @@ import PushService from "./PushService.js";
 
 export default class PushSubscription {
 
-    constructor(serviceWorkerFile = '/service-worker.js') {
+    constructor(serviceWorkerFile = '/service-worker.js', api) {
         this.subscription = null;
         this.pushService = new PushService(serviceWorkerFile);
     }
 
     async setUp() {
-        this.subscription = await this.pushService.setUp();
+        await this.pushService.setUp();
+        this.subscription = this.pushService.subscription;
+        console.log(this.subscription.getKey('p256dh'));
+        console.log(this.subscription.getKey('auth'));
         return this.subscription;
     }
 
