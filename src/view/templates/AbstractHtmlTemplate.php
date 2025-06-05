@@ -5,7 +5,7 @@ namespace chatr\view\templates;
 
 use chatr\view\layouts\Layout;
 
-abstract class Template
+abstract class AbstractHtmlTemplate implements ITemplate
 {
     protected Layout $layout;
     /**
@@ -35,6 +35,36 @@ abstract class Template
         $this->contentHeader = sprintf($this->contentHeader, $this->title);
     }
 
+    public function render() : string
+    {
+//        $this->layout->mainContent = $this->getMainContent();
+//        $this->layout->contentHeader = $this->contentHeader;
+//        $this->layout->footer = $this->footer;
+//        $this->layout->header = $this->getHeader();
+
+        return $this->layout->buildPageFromTemplate($this);
+    }
+
+    abstract public function getMainContent() : string;
+
+    public function getFooter() : string
+    {
+        return $this->footer;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContentHeader(): string
+    {
+        return $this->contentHeader;
+    }
+
+    public function getHeader() : string
+    {
+        return implode(PHP_EOL, $this->headers);
+    }
+
     /**
      * @return string[]
      */
@@ -56,22 +86,5 @@ abstract class Template
     {
         $this->headers = $headers;
         return $this;
-    }
-
-    public function header() : string
-    {
-        return implode(PHP_EOL, $this->headers);
-    }
-
-    abstract public function mainContent() : string;
-
-    public function render() : string
-    {
-        $this->layout->mainContent = $this->mainContent();
-        $this->layout->contentHeader = $this->contentHeader;
-        $this->layout->footer = $this->footer;
-        $this->layout->header = $this->header();
-
-        return (string)$this->layout;
     }
 }

@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 namespace chatr\view\layouts;
 
+use chatr\view\templates\ITemplate;
+
 abstract class Layout
 {
     public string $header = '';
     public string $contentHeader = '';
      public string $footer = '';
      public string $mainContent = '';
+    private ITemplate $template;
 
     public function __construct()
     {
@@ -30,28 +33,34 @@ abstract class Layout
         <!DOCTYPE html>
         <html lang="fr">
         <head>
-            $this->header
+            {$this->template->getHeader()}
         </head>
         <body>
         <header>
             <div class="header">
-                $this->contentHeader
+                {$this->template->getContentHeader()}
             </div>
         </header>
 
         <main>
             <div class="main">
-                $this->mainContent
+                {$this->template->getMainContent()}
             </div>
         </main>
 
         <footer>
             <div class="footer">
-                $this->footer
+                {$this->template->getFooter()}
             </div>
         </footer>
         </body>
         </html>
         HTML;
+    }
+
+    public function buildPageFromTemplate(ITemplate $template): string
+    {
+        $this->template = $template;
+        return (string)$this;
     }
 }

@@ -6,7 +6,7 @@ namespace chatr\view\templates;
 use chatr\view\layouts\Layout;
 use chatr\view\templates\components\Component;
 
-class Conversation extends Template
+class Conversation extends AbstractHtmlTemplate
 {
     public string $title = 'MA CONVERSATION';
     private Component $typeList;
@@ -46,7 +46,7 @@ class Conversation extends Template
 HEADERS
         ];
     }
-    public function mainContent(): string
+    public function getMainContent(): string
     {
         return "
             <div id='conversation'>
