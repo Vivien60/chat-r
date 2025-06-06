@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once dirname(__FILE__, 2) ."/vendor/autoload.php";
 function autoload_chatr_1247575(string $nomClasse) : void {
     $prefix = "chatr";
     $len = strlen($prefix);

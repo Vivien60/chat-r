@@ -11,8 +11,8 @@ export default class PushSubscription {
     async setUp() {
         await this.pushService.setUp();
         this.subscription = this.pushService.subscription;
-        console.log(this.subscription.getKey('p256dh'));
-        console.log(this.subscription.getKey('auth'));
+        console.log(this.subscription?.getKey('p256dh'));
+        console.log(this.subscription?.getKey('auth'));
         return this.subscription;
     }
 
@@ -23,10 +23,12 @@ export default class PushSubscription {
     }
 
     notify(message, notificationOptions) {
+
+        console.log(this.pushService.subscription);
         if (!this.pushService.usable) {
             // Check if the browser supports notifications
             throw new Error("This browser does not support desktop notification or notifications have not been granted by the user");
-        } else if(!this.pushService.subscription) {
+        } else if(!!this.pushService.subscription) {
             const notification = new Notification(message, {body: notificationOptions.body, icon: notificationOptions.img});
         } else {
             throw new Error("User has not subscribed to notifications");

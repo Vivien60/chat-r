@@ -21,7 +21,13 @@ export default class PushService {
         return this.#checkUsability()
             .then(this.#initServiceWorker.bind(this))
             .then(this.#fetchClientSubscription.bind(this))
-            .catch(error => Promise.reject(new Error("Push messaging is not supported.")));
+            .then(function() {
+                console.log(this.subscription)
+            }.bind(this))
+            .catch((error )=> {
+                console.log(error);
+                Promise.reject(new Error("Push messaging is not supported."))
+            });
     }
 
     subscribe() {
