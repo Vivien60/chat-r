@@ -1,7 +1,13 @@
 import ChatUIHandler from "./ChatUI.js";
 import PushSubscription from "./PushSubscription.js";
+import ChatApi from "./ChatApi.js";
 
-initChat(conversation.config(), pushMessaging.config(), await new PushSubscription()).then(function(chat){
+initChat(
+    conversation.config(),
+    pushMessaging.config(),
+    await new PushSubscription('/service-worker.js', new ChatApi())
+).then(
+    function(chat){
     console.log(chat);
 });
 

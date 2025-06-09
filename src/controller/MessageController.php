@@ -9,24 +9,21 @@ use Minishlink\WebPush\Subscription;
 
 class MessageController
 {
-    public function handleNewMessage(array $queryParams)
+    public function sendNewMessage(array $queryParams)
     {
-// store the client-side `PushSubscription` object (calling `.toJSON` on it) as-is and then create a WebPush\Subscription from it
+        // store the client-side `PushSubscription` object (calling `.toJSON` on it) as-is and then create a WebPush\Subscription from it
         $envSubscription = json_decode(getenv('subscription'), true);
         $subscription = Subscription::create($envSubscription);
 
-// array of notifications
+        $securedMessage = htmlentities($queryParams['message']);
         $notifications = [
             [
                 'subscription' => $subscription,
-                'payload' => '{"message":"Hello World!"}',
+                'payload' => '{"message":"'.$securedMessage.'"}',
             ], [
                 // current PushSubscription format (browsers might change this in the future)
-                'subscription' => Subscription::create([
-                    "endpoint" => $envSubscription['endpoint'],
-                    "keys" => $envSubscription['keys'],
-                ]),
-                'payload' => '{"message":"Hello World!"}',
+                'subscription' => Subscription::create($envSubscription),
+                'payload' => '{"message":"'.$securedMessage.'"}',
             ]
         ];
         $webPush = new WebPush();
@@ -34,8 +31,13 @@ class MessageController
             $notifications[0]['subscription'],
             $notifications[0]['payload'], // optional (defaults null)
         );
+        if ($report->isSuccess()) {
+            $content = "Message sent successfully for subscription.";
+        } else {
+            $content = "Message failed to sent for subscription : {$report->getReason()}";
+        }
 
-        $view = new SimpleJsonTemplate(new OnlyContentLayout([]));
+        $view = new SimpleJsonTemplate(new OnlyContentLayout(),$content);
         echo $view->render();
     }
 }

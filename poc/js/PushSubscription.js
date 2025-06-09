@@ -1,11 +1,13 @@
 // Transport de messages
 import PushService from "./PushService.js";
+import ChatApi from "./ChatApi.js";
 
 export default class PushSubscription {
 
     constructor(serviceWorkerFile = '/service-worker.js', api) {
         this.subscription = null;
         this.pushService = new PushService(serviceWorkerFile);
+        this.api = api;
     }
 
     async setUp() {
@@ -18,8 +20,9 @@ export default class PushSubscription {
 
 
     send(message, notificationOptions) {
-        this.notify(message, notificationOptions);
+        //this.notify(message, notificationOptions);
         //this.pushService.send(message);
+        return ChatApi.sendMessage(message);
     }
 
     notify(message, notificationOptions) {
