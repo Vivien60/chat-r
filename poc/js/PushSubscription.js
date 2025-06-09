@@ -1,42 +1,54 @@
 // Transport de messages
 import PushService from "./PushService.js";
+import ChatApi from "./ChatApi.js";
 
 export default class PushSubscription {
 
-    constructor(serviceWorkerFile = '/service-worker.js') {
+    constructor(serviceWorkerFile = '/service-worker.js', api) {
         this.subscription = null;
         this.pushService = new PushService(serviceWorkerFile);
+        this.api = api;
     }
 
     async setUp() {
-        this.subscription = await this.pushService.setUp();
+        await this.pushService.setUp();
+        this.subscription = this.pushService.subscription;
+        console.log(this.subscription?.getKey('p256dh'));
+        console.log(this.subscription?.getKey('auth'));
         return this.subscription;
     }
 
 
-    async send(message, notificationOptions) {
-        await this.notify(message, notificationOptions);
+    send(message, notificationOptions) {
+        //this.notify(message, notificationOptions);
         //this.pushService.send(message);
+        return ChatApi.sendMessage(message);
     }
 
-    async notify(message, notificationOptions) {
-        console.log('notifying', this);
+    notify(message, notificationOptions) {
+
+        console.log(this.pushService.subscription);
         if (!this.pushService.usable) {
             // Check if the browser supports notifications
-            throw new Error("This browser does not support desktop notification");
-        } else if(await this.subscribe()) {
+            throw new Error("This browser does not support desktop notification or notifications have not been granted by the user");
+        } else if(!!this.pushService.subscription) {
             const notification = new Notification(message, {body: notificationOptions.body, icon: notificationOptions.img});
         } else {
-            throw new Error("Notifications have not been granted by the user");
+            throw new Error("User has not subscribed to notifications");
         }
     }
 
     async subscribe() {
-        return this.subscription = await this.pushService.subscribe();
+        this.subscription = await this.pushService.subscribe();
+        return true;
     }
 
     async unsubscribe() {
-        return this.subscription.unsubscribe().then(this.#unsubscribeOnServer.bind(this));
+        let subscription = await this.pushService.unsubscribe();
+        await this.#unsubscribeOnServer();
+        this.subscription=subscription;
+
+        return true;
     }
 
     syncOnServer() {
@@ -50,7 +62,7 @@ export default class PushSubscription {
         console.log('aaa', this.subscription);
         return;
         //TODO :
-        fetch('/register-subscription', {
+        return fetch('/register-subscription', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

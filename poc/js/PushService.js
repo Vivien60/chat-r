@@ -1,6 +1,13 @@
+//TODO Vivien :
+// Possède plusieurs statuts : granted, usability et subscription
+// Voir pour modifier en un seul statut qui contiendrait par étape successives : "usable/compatible", "granted" et "subscribed"
+
+
 export default class PushService {
     #requestedPermission = false;
     #usability = false;
+    granted = false;
+    subscription = null;
     get usable() {
         return this.#usability;
     }
@@ -11,25 +18,41 @@ export default class PushService {
     }
 
     async setUp() {
-        return this.#fetchUsability()
+        return this.#checkUsability()
             .then(this.#initServiceWorker.bind(this))
             .then(this.#fetchClientSubscription.bind(this))
-            .catch(error => Promise.reject(new Error("Push messaging is not supported.")));
+            .then(function() {
+                console.log(this.subscription)
+            }.bind(this))
+            .catch((error )=> {
+                console.log(error);
+                Promise.reject(new Error("Push messaging is not supported."))
+            });
     }
 
     subscribe() {
         return this.#serviceWorkerRegistrationReady()
-            .then(this.#subscribeToPushNotifications.bind(this))
-            .then(function() {return this.subscription}.bind(this))
+            .then(this.#doSubscribe.bind(this))
             .catch(error => Promise.reject(new Error("Unable to subscribe to push.")));
     }
 
-    async #fetchUsability() {
+    async unsubscribe() {
+        await this.subscription?.unsubscribe();
+        this.subscription = null;
+        return this.subscription;
+    }
+
+    allowed() {
+        return this.#requestedPermission;
+    }
+
+    async #checkUsability() {
         this.#usability = await this.#isUsable();
     }
 
     async #isUsable() {
-        return (this.#notificationsAreSupported() && this.#pushServiceIsSupported() && await this.#requestNotificationPermission());
+        return (this.#notificationsAreSupported() && this.#pushServiceIsSupported()
+            && await this.#requestNotificationPermission());
     }
 
     #notificationsAreSupported() {
@@ -62,13 +85,14 @@ export default class PushService {
 
     async #requestNotificationPermission() {
         this.#requestedPermission = true;
-        return await Notification.permission === "granted" ||
-            !(Notification.permission === "denied") ||
-            Notification.requestPermission();
+        this.granted = Notification.permission === "granted" || !(Notification.permission === "denied");
+        return this.granted ||
+            Notification.requestPermission().then((grant) => this.granted = grant);
     }
 
-    async #subscribeToPushNotifications(serviceWorkerRegistration) {
+    async #doSubscribe(serviceWorkerRegistration) {
         this.subscription = await serviceWorkerRegistration.pushManager.subscribe();
+        return this.subscription;
     }
 
     #serviceWorkerRegistrationReady() {
@@ -76,6 +100,6 @@ export default class PushService {
     }
 
     send(message) {
-        
+
     }
 }
